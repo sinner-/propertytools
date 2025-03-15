@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Investment Property Cashflow Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+    }
+    /* Container for two columns */
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .left, .right {
+      width: 50%;
+      box-sizing: border-box;
+      padding: 10px;
+    }
+    .section {
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    /* Pastel colours for each section */
+    #section1 { background-color: #cceeff; }
+    #section2 { background-color: #ccffcc; }
+    #section3 { background-color: #ffedcc; }
+    #section4 { background-color: #ffcccc; }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input {
+      margin-bottom: 10px;
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .result {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Investment Property Cashflow Calculator</h1>
+  <div class="container">
+    <!-- Left Column: Input Fields -->
+    <div class="left">
+      <!-- Section 1: Inputs (Pastel Blue) -->
+      <div id="section1" class="section">
+        <h2>Inputs</h2>
+        <label for="propertyPrice">Property Price</label>
+        <input type="number" id="propertyPrice" value="775000" step="any">
+
+        <label for="interestRate">Interest Rate (%)</label>
+        <input type="number" id="interestRate" value="6.25" step="any">
+
+        <label for="rent">Rent</label>
+        <input type="number" id="rent" value="28600" step="any">
+
+        <label for="stampDuty">Stamp Duty</label>
+        <input type="number" id="stampDuty" value="0" step="any">
+
+        <label for="transferFee">Transfer Fee</label>
+        <input type="number" id="transferFee" value="5000" step="any">
+
+        <label for="legalFees">Legal Fees</label>
+        <input type="number" id="legalFees" value="5000" step="any">
+
+        <label for="seedCapital">Seed Capital</label>
+        <input type="number" id="seedCapital" value="152000" step="any">
+
+        <label for="grossIncomeExRental">Gross Income (ex rental)</label>
+        <input type="number" id="grossIncomeExRental" value="225000" step="any">
+
+        <label for="maintenancePct">Maintenance Costs (% of property value)</label>
+        <input type="number" id="maintenancePct" value="1.5" step="any">
+
+        <label for="reAgentPct">RE Agent Costs (% of rent)</label>
+        <input type="number" id="reAgentPct" value="5" step="any">
+
+        <label for="insurancePct">Insurance Costs (% of property value)</label>
+        <input type="number" id="insurancePct" value="0.5" step="any">
+
+        <label for="vacancyPct">Vacancy Provision Costs (% of rent)</label>
+        <input type="number" id="vacancyPct" value="5" step="any">
+
+        <label for="councilRatePct">Council Rate (% of property value)</label>
+        <input type="number" id="councilRatePct" value="0.5" step="any">
+
+        <label for="superContributionPct">Superannuation Contribution (%)</label>
+        <input type="number" id="superContributionPct" value="12.5" step="any">
+      </div>
+    </div>
+    
+    <!-- Right Column: Calculated Fields -->
+    <div class="right">
+      <!-- Section 2: Equity & Loan Calculations (Pastel Green) -->
+      <div id="section2" class="section">
+        <h2>Equity & Loan Calculations</h2>
+        <div class="result">
+          Initial Equity After Fees: <span id="initialEquity"></span>
+        </div>
+        <div class="result">
+          Deposit Amount (% of Property Price): <span id="depositAmount"></span>
+        </div>
+        <div class="result">
+          Initial Loan Amount: <span id="initialLoan"></span>
+        </div>
+      </div>
+
+      <!-- Section 3: Cost Calculations (Pastel Orange) -->
+      <div id="section3" class="section">
+        <h2>Cost Calculations</h2>
+        <div class="result">
+          Annual Interest: <span id="annualInterest"></span>
+        </div>
+        <div class="result">
+          Maintenance Costs: <span id="maintenanceCost"></span>
+        </div>
+        <div class="result">
+          RE Agent Costs: <span id="reAgentCost"></span>
+        </div>
+        <div class="result">
+          Insurance Costs: <span id="insuranceCost"></span>
+        </div>
+        <div class="result">
+          Vacancy Provision Costs: <span id="vacancyCost"></span>
+        </div>
+        <div class="result">
+          Council Rate: <span id="councilRate"></span>
+        </div>
+        <div class="result">
+          Total Costs: <span id="totalCosts"></span>
+        </div>
+      </div>
+
+      <!-- Section 4: Tax & Negative Gearing Calculations (Pastel Red) -->
+      <div id="section4" class="section">
+        <h2>Tax & Negative Gearing Calculations</h2>
+        <div class="result">
+          Tax on Gross Income (ex rental): <span id="taxGrossExRental"></span>
+        </div>
+        <div class="result">
+          Medicare Levy (ex rental): <span id="medicareExRental"></span>
+        </div>
+        <div class="result">
+          Division 293 Tax (ex rental): <span id="div293Tax"></span>
+        </div>
+        <div class="result">
+          Gross Income: <span id="grossIncome"></span>
+        </div>
+        <div class="result">
+          Taxable Income: <span id="taxableIncome"></span>
+        </div>
+        <div class="result">
+          Tax on Taxable Income: <span id="taxTaxableIncome"></span>
+        </div>
+        <div class="result">
+          Medicare Levy on Taxable Income: <span id="medicareTaxable"></span>
+        </div>
+        <div class="result">
+          Total Tax Reduction from Negative Gearing: <span id="totalTaxReduction"></span>
+        </div>
+        <div class="result">
+          Rent plus Negative Gearing Savings: <span id="rentPlusSavings"></span>
+        </div>
+        <div class="result">
+          Net Profit After Tax: <span id="netProfit"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper function to format monetary values with dollar sign and commas
+    function formatMoney(amount) {
+      var sign = amount < 0 ? "-" : "";
+      return sign + "$" + Math.abs(amount).toLocaleString("en-AU", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+    
+    function calculate() {
+      // --- Section 1: Gather Inputs ---
+      var propertyPrice = parseFloat(document.getElementById('propertyPrice').value) || 0;
+      var interestRate = parseFloat(document.getElementById('interestRate').value) || 0;
+      var rent = parseFloat(document.getElementById('rent').value) || 0;
+      var stampDuty = parseFloat(document.getElementById('stampDuty').value) || 0;
+      var transferFee = parseFloat(document.getElementById('transferFee').value) || 0;
+      var legalFees = parseFloat(document.getElementById('legalFees').value) || 0;
+      var seedCapital = parseFloat(document.getElementById('seedCapital').value) || 0;
+      var grossIncomeExRental = parseFloat(document.getElementById('grossIncomeExRental').value) || 0;
+      var maintenancePct = parseFloat(document.getElementById('maintenancePct').value) || 0;
+      var reAgentPct = parseFloat(document.getElementById('reAgentPct').value) || 0;
+      var insurancePct = parseFloat(document.getElementById('insurancePct').value) || 0;
+      var vacancyPct = parseFloat(document.getElementById('vacancyPct').value) || 0;
+      var councilRatePct = parseFloat(document.getElementById('councilRatePct').value) || 0;
+      var superContributionPct = parseFloat(document.getElementById('superContributionPct').value) || 0;
+      
+      // --- Section 2: Equity & Loan Calculations ---
+      var initialEquity = seedCapital - (stampDuty + transferFee + legalFees);
+      var depositAmountPct = propertyPrice !== 0 ? (initialEquity / propertyPrice) * 100 : 0;
+      var initialLoan = propertyPrice - initialEquity;
+      
+      // --- Section 3: Cost Calculations ---
+      var annualInterest = initialLoan * (interestRate / 100);
+      var maintenanceCost = propertyPrice * (maintenancePct / 100);
+      var reAgentCost = rent * (reAgentPct / 100);
+      var insuranceCost = propertyPrice * (insurancePct / 100);
+      var vacancyCost = rent * (vacancyPct / 100);
+      var councilRate = propertyPrice * (councilRatePct / 100);
+      var totalCosts = annualInterest + maintenanceCost + reAgentCost + insuranceCost + vacancyCost + councilRate;
+      
+      // --- Section 4: Tax & Negative Gearing Calculations ---
+      
+      // Progressive tax calculation function using example tax brackets
+      function computeTax(income) {
+        if (income <= 18200) {
+          return 0;
+        } else if (income <= 45000) {
+          return (income - 18200) * 0.16;
+        } else if (income <= 135000) {
+          return 4288 + (income - 45000) * 0.3;
+        } else if (income <= 190000) {
+          return 31288 + (income - 135000) * 0.37;
+        } else {
+          return 51638 + (income - 190000) * 0.45;
+        }
+      }
+      
+      // Calculate tax and Medicare levy for income excluding rental income
+      var taxWithoutRental = computeTax(grossIncomeExRental);
+      var medicareWithoutRental = 0.02 * grossIncomeExRental;
+      
+      // Calculate gross income including rental income and taxable income after expenses
+      var grossIncome = grossIncomeExRental + rent;
+      var taxableIncome = grossIncome - totalCosts;
+      
+      // Calculate tax and Medicare levy on taxable income
+      var taxWithRental = computeTax(taxableIncome);
+      var medicareWithRental = taxableIncome > 0 ? 0.02 * taxableIncome : 0;
+      
+      // Determine tax reduction benefit from negative gearing
+      var taxReduction = (taxWithoutRental + medicareWithoutRental) - (taxWithRental + medicareWithRental);
+      
+      // Correct Division 293 Tax Calculation: apply only if base exceeds $250,000
+      var div293Base = grossIncomeExRental * (1 + superContributionPct / 100);
+      var div293Tax = (div293Base > 250000) ? (div293Base - 250000) * 0.15 : 0;
+      
+      // Total tax benefit after accounting for Division 293 tax
+      var totalTaxReduction = taxReduction - div293Tax;
+      
+      // Effective cash inflow from rent plus tax savings
+      var rentPlusSavings = rent + totalTaxReduction;
+      
+      // Net profit calculation: cash inflow minus total costs
+      var netProfit = rentPlusSavings - totalCosts;
+      
+      // --- Update HTML with formatted values ---
+      document.getElementById('initialEquity').textContent = formatMoney(initialEquity);
+      document.getElementById('depositAmount').textContent = depositAmountPct.toFixed(2) + '%';
+      document.getElementById('initialLoan').textContent = formatMoney(initialLoan);
+      
+      document.getElementById('annualInterest').textContent = formatMoney(annualInterest);
+      document.getElementById('maintenanceCost').textContent = formatMoney(maintenanceCost);
+      document.getElementById('reAgentCost').textContent = formatMoney(reAgentCost);
+      document.getElementById('insuranceCost').textContent = formatMoney(insuranceCost);
+      document.getElementById('vacancyCost').textContent = formatMoney(vacancyCost);
+      document.getElementById('councilRate').textContent = formatMoney(councilRate);
+      document.getElementById('totalCosts').textContent = formatMoney(totalCosts);
+      
+      document.getElementById('taxGrossExRental').textContent = formatMoney(taxWithoutRental);
+      document.getElementById('medicareExRental').textContent = formatMoney(medicareWithoutRental);
+      document.getElementById('div293Tax').textContent = formatMoney(div293Tax);
+      document.getElementById('grossIncome').textContent = formatMoney(grossIncome);
+      document.getElementById('taxableIncome').textContent = formatMoney(taxableIncome);
+      document.getElementById('taxTaxableIncome').textContent = formatMoney(taxWithRental);
+      document.getElementById('medicareTaxable').textContent = formatMoney(medicareWithRental);
+      document.getElementById('totalTaxReduction').textContent = formatMoney(totalTaxReduction);
+      document.getElementById('rentPlusSavings').textContent = formatMoney(rentPlusSavings);
+      document.getElementById('netProfit').textContent = formatMoney(netProfit);
+    }
+    
+    document.querySelectorAll('input').forEach(function(input) {
+      input.addEventListener('input', calculate);
+    });
+    
+    calculate();
+  </script>
+</body>
+</html>
+
