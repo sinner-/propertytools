@@ -33,18 +33,28 @@
     #section3 { background-color: #ffedcc; }
     #section4 { background-color: #ffcccc; }
     
-    label {
-      display: block;
-      margin-bottom: 5px;
+    /* Style for input group to align labels and inputs */
+    .input-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .input-group label {
+      flex: 2;
+      text-align: right;
+      padding-right: 10px;
       font-weight: bold;
     }
-    input {
-      margin-bottom: 10px;
-      width: 100%;
-      padding: 8px;
+    .input-group input {
+      flex: 1;
+      width: 80px;
+      padding: 5px;
       border: 1px solid #ccc;
       border-radius: 4px;
+      text-align: right;
     }
+    
     .result {
       margin-bottom: 10px;
     }
@@ -58,47 +68,62 @@
       <!-- Section 1: Inputs (Pastel Blue) -->
       <div id="section1" class="section">
         <h2>Inputs</h2>
-        <label for="propertyPrice">Property Price</label>
-        <input type="number" id="propertyPrice" value="775000" step="any">
-
-        <label for="interestRate">Interest Rate (%)</label>
-        <input type="number" id="interestRate" value="6.25" step="any">
-
-        <label for="rent">Rent</label>
-        <input type="number" id="rent" value="28600" step="any">
-
-        <label for="stampDuty">Stamp Duty</label>
-        <input type="number" id="stampDuty" value="0" step="any">
-
-        <label for="transferFee">Transfer Fee</label>
-        <input type="number" id="transferFee" value="5000" step="any">
-
-        <label for="legalFees">Legal Fees</label>
-        <input type="number" id="legalFees" value="5000" step="any">
-
-        <label for="seedCapital">Seed Capital</label>
-        <input type="number" id="seedCapital" value="152000" step="any">
-
-        <label for="grossIncomeExRental">Gross Income (ex rental)</label>
-        <input type="number" id="grossIncomeExRental" value="225000" step="any">
-
-        <label for="maintenancePct">Maintenance Costs (% of property value)</label>
-        <input type="number" id="maintenancePct" value="1.5" step="any">
-
-        <label for="reAgentPct">RE Agent Costs (% of rent)</label>
-        <input type="number" id="reAgentPct" value="5" step="any">
-
-        <label for="insurancePct">Insurance Costs (% of property value)</label>
-        <input type="number" id="insurancePct" value="0.5" step="any">
-
-        <label for="vacancyPct">Vacancy Provision Costs (% of rent)</label>
-        <input type="number" id="vacancyPct" value="5" step="any">
-
-        <label for="councilRatePct">Council Rate (% of property value)</label>
-        <input type="number" id="councilRatePct" value="0.5" step="any">
-
-        <label for="superContributionPct">Superannuation Contribution (%)</label>
-        <input type="number" id="superContributionPct" value="12.5" step="any">
+        <div class="input-group">
+          <label for="propertyPrice">Property Price:</label>
+          <input type="number" id="propertyPrice" value="775000" step="any">
+        </div>
+        <div class="input-group">
+          <label for="interestRate">Interest Rate (%):</label>
+          <input type="number" id="interestRate" value="6.25" step="any">
+        </div>
+        <div class="input-group">
+          <label for="rent">Rent:</label>
+          <input type="number" id="rent" value="28600" step="any">
+        </div>
+        <div class="input-group">
+          <label for="stampDuty">Stamp Duty:</label>
+          <input type="number" id="stampDuty" value="0" step="any">
+        </div>
+        <div class="input-group">
+          <label for="transferFee">Transfer Fee:</label>
+          <input type="number" id="transferFee" value="5000" step="any">
+        </div>
+        <div class="input-group">
+          <label for="legalFees">Legal Fees:</label>
+          <input type="number" id="legalFees" value="5000" step="any">
+        </div>
+        <div class="input-group">
+          <label for="seedCapital">Seed Capital:</label>
+          <input type="number" id="seedCapital" value="152000" step="any">
+        </div>
+        <div class="input-group">
+          <label for="grossIncomeExRental">Gross Income (ex rental):</label>
+          <input type="number" id="grossIncomeExRental" value="225000" step="any">
+        </div>
+        <div class="input-group">
+          <label for="maintenancePct">Maintenance Costs (%):</label>
+          <input type="number" id="maintenancePct" value="1.5" step="any">
+        </div>
+        <div class="input-group">
+          <label for="reAgentPct">RE Agent Costs (%):</label>
+          <input type="number" id="reAgentPct" value="5" step="any">
+        </div>
+        <div class="input-group">
+          <label for="insurancePct">Insurance Costs (%):</label>
+          <input type="number" id="insurancePct" value="0.5" step="any">
+        </div>
+        <div class="input-group">
+          <label for="vacancyPct">Vacancy Provision (%):</label>
+          <input type="number" id="vacancyPct" value="5" step="any">
+        </div>
+        <div class="input-group">
+          <label for="councilRatePct">Council Rate (%):</label>
+          <input type="number" id="councilRatePct" value="0.5" step="any">
+        </div>
+        <div class="input-group">
+          <label for="superContributionPct">Superannuation (%):</label>
+          <input type="number" id="superContributionPct" value="12.5" step="any">
+        </div>
       </div>
     </div>
     
@@ -220,7 +245,6 @@
       var totalCosts = annualInterest + maintenanceCost + reAgentCost + insuranceCost + vacancyCost + councilRate;
       
       // --- Section 4: Tax & Negative Gearing Calculations ---
-      
       // Progressive tax calculation function using example tax brackets
       function computeTax(income) {
         if (income <= 18200) {
