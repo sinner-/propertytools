@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Max Property Price Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .input-section {
+      margin-bottom: 20px;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      display: inline-block;
+      width: 48%;
+      margin-bottom: 15px;
+    }
+    .label-input {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .label-input label {
+      font-weight: bold;
+      color: #555;
+      margin-right: 5px;
+      white-space: nowrap;
+    }
+    .label-input .unit {
+      margin: 0 5px;
+      font-weight: bold;
+      color: #555;
+    }
+    /* Small textbox for weekly rent */
+    .small-input {
+      width: 80px;
+      padding: 6px 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: right;
+    }
+    /* Medium textbox for deposit */
+    .medium-input {
+      width: 120px;
+      padding: 6px 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: right;
+    }
+    /* Equal textbox for rate and loan term */
+    .equal-input {
+      width: 80px;
+      padding: 6px 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: right;
+    }
+    input[type="range"] {
+      width: 100%;
+      display: block;
+    }
+    .result-section {
+      margin-top: 20px;
+      text-align: center;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+    .result-section p {
+      font-size: 18px;
+      line-height: 1.5;
+      color: #333;
+      margin: 5px 0;
+    }
+    @media (max-width: 600px) {
+      .input-group {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Max Property Price Calculator</h1>
+    <p>This tool tells you what's the maximum property price you can afford if you only want to spend the same amount on mortgage payments as you currently spend on rent. Assumes you're in NSW, Australia for the purposes of stamp duty calculation.</p>
+    <div class="input-section">
+      <!-- Row 1: Current Weekly Rent and Deposit -->
+      <div class="row">
+        <div class="input-group">
+          <div class="label-input">
+            <label for="weeklyRent">Current Weekly Rent:</label>
+            <span class="unit">$</span>
+            <input type="number" id="weeklyRent" class="small-input" min="500" max="1500" step="25" value="710">
+          </div>
+          <input type="range" id="weeklyRentRange" min="500" max="1500" step="25" value="710">
+        </div>
+        <div class="input-group">
+          <div class="label-input">
+            <label for="deposit">Deposit:</label>
+            <span class="unit">$</span>
+            <input type="number" id="deposit" class="medium-input" min="100000" max="900000" step="25000" value="500000">
+          </div>
+          <input type="range" id="depositRange" min="100000" max="900000" step="25000" value="500000">
+        </div>
+      </div>
+      <!-- Row 2: Annual Interest Rate and Loan Term -->
+      <div class="row">
+        <div class="input-group">
+          <div class="label-input">
+            <label for="annualRate">Rate:</label>
+            <input type="number" id="annualRate" class="equal-input" min="2" max="9" step="0.125" value="6.28">
+            <span class="unit">%</span>
+          </div>
+          <input type="range" id="annualRateRange" min="2" max="9" step="0.125" value="6.28">
+        </div>
+        <div class="input-group">
+          <div class="label-input">
+            <label for="termYears">Loan Term:</label>
+            <input type="number" id="termYears" class="equal-input" min="15" max="30" step="1" value="30">
+            <span class="unit">years</span>
+          </div>
+          <input type="range" id="termYearsRange" min="15" max="30" step="1" value="30">
+        </div>
+      </div>
+    </div>
+    <div class="result-section">
+      <h2>Results</h2>
+      <p id="resultPropertyPrice"></p>
+      <p id="resultStampDuty"></p>
+      <p id="resultLoan"></p>
+      <p id="resultMonthlyPayment"></p>
+    </div>
+  </div>
+  <script>
+    // Sync slider and number input for a given pair, updating results on change.
+    function syncInputs(slider, number) {
+      slider.addEventListener('input', function() {
+        number.value = slider.value;
+        updateResults();
+      });
+      number.addEventListener('input', function() {
+        slider.value = number.value;
+        updateResults();
+      });
+    }
+
+    // Setup synchronization for all input pairs.
+    syncInputs(document.getElementById('weeklyRentRange'), document.getElementById('weeklyRent'));
+    syncInputs(document.getElementById('depositRange'), document.getElementById('deposit'));
+    syncInputs(document.getElementById('annualRateRange'), document.getElementById('annualRate'));
+    syncInputs(document.getElementById('termYearsRange'), document.getElementById('termYears'));
+
+    // NSW Stamp Duty calculation (simplified brackets)
+    function calculateStampDuty(X) {
+      if (X < 14000) {
+        return X * 0.0125;
+      } else if (X < 30000) {
+        return 175 + 0.015 * (X - 14000);
+      } else if (X < 80000) {
+        return 415 + 0.0175 * (X - 30000);
+      } else if (X < 300000) {
+        return 1290 + 0.035 * (X - 80000);
+      } else if (X < 345000) {
+        return 8990 + 0.045 * (X - 300000);
+      } else if (X <= 1033000) {
+        return 11115 + 4.50 * ((X - 345000) / 100);
+      } else {
+        return 41820 + 5.50 * ((X - 1033000) / 100);
+      }
+    }
+
+    // Given deposit, current weekly rent, annual rate, and term (years), find the max property price.
+    function findMaxPropertyPrice(deposit, weeklyRent, annualRate, termYears) {
+      var monthlyRent = weeklyRent * 4.333; // approximate monthly rent
+      var n = termYears * 12;
+      var i = annualRate / 1200; // monthly rate in decimal
+      var f = (i * Math.pow(1 + i, n)) / (Math.pow(1 + i, n) - 1);
+      var L_max = monthlyRent / f;
+
+      // f(X) = X - deposit + stampDuty(X) - L_max = 0.
+      function f_of_X(X) {
+        return X - deposit + calculateStampDuty(X) - L_max;
+      }
+
+      var lower = deposit;
+      var upper = deposit + L_max + 1000000;
+      var tol = 1;
+      var mid;
+      var iterations = 0;
+      while (upper - lower > tol && iterations < 100) {
+        mid = (lower + upper) / 2;
+        if (f_of_X(mid) > 0) {
+          upper = mid;
+        } else {
+          lower = mid;
+        }
+        iterations++;
+      }
+      var X = (lower + upper) / 2;
+      var stampDuty = calculateStampDuty(X);
+      var loan = X - (deposit - stampDuty);
+      var monthlyPayment = loan * f;
+      return { propertyPrice: X, stampDuty: stampDuty, loan: loan, monthlyPayment: monthlyPayment };
+    }
+
+    function formatCurrency(num) {
+      return '$' + num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+
+    function updateResults() {
+      var weeklyRent = parseFloat(document.getElementById('weeklyRent').value);
+      var annualRate = parseFloat(document.getElementById('annualRate').value);
+      var termYears = parseFloat(document.getElementById('termYears').value);
+      var deposit = parseFloat(document.getElementById('deposit').value);
+
+      if (deposit < calculateStampDuty(deposit)) {
+        document.getElementById('resultPropertyPrice').innerText = "Deposit insufficient to cover stamp duty.";
+        document.getElementById('resultStampDuty').innerText = "";
+        document.getElementById('resultLoan').innerText = "";
+        document.getElementById('resultMonthlyPayment').innerText = "";
+        return;
+      }
+      
+      var result = findMaxPropertyPrice(deposit, weeklyRent, annualRate, termYears);
+      document.getElementById('resultPropertyPrice').innerText = "Max Property Price: " + formatCurrency(result.propertyPrice);
+      document.getElementById('resultStampDuty').innerText = "Stamp Duty: " + formatCurrency(result.stampDuty);
+      document.getElementById('resultLoan').innerText = "Loan Amount: " + formatCurrency(result.loan);
+      document.getElementById('resultMonthlyPayment').innerText = "Monthly Payment: " + formatCurrency(result.monthlyPayment);
+    }
+
+    window.onload = updateResults;
+  </script>
+</body>
+</html>
