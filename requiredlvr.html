@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Investment Property LVR Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    h1 {
+      text-align: center;
+    }
+    .row-inputs {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .input-container {
+      flex: 1;
+      min-width: 250px;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .input-row label {
+      margin-right: 5px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .input-row input[type="number"] {
+      width: 70px;
+      padding: 5px;
+      margin-right: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: right;
+    }
+    .input-row span {
+      white-space: nowrap;
+      font-weight: bold;
+    }
+    input[type="range"] {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .loan-type {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .loan-type label {
+      margin-right: 20px;
+      font-weight: bold;
+    }
+    .result {
+      text-align: center;
+      margin-top: 20px;
+    }
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: #e9e9e9;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Investment Property LVR Calculator</h1>
+    
+    <div class="row-inputs">
+      <div class="input-container">
+        <div class="input-row">
+          <label for="interestRate">Interest Rate:</label>
+          <input type="number" id="interestRate" step="0.125" min="1" max="9" value="5">
+          <span>%</span>
+        </div>
+        <input type="range" id="interestRateSlider" step="0.125" min="1" max="9" value="5">
+      </div>
+      
+      <div class="input-container">
+        <div class="input-row">
+          <label for="grossYield">Gross Rental Yield:</label>
+          <input type="number" id="grossYield" step="0.125" min="1" max="9" value="5">
+          <span>%</span>
+        </div>
+        <input type="range" id="grossYieldSlider" step="0.125" min="1" max="9" value="5">
+      </div>
+      
+      <div class="input-container">
+        <div class="input-row">
+          <label for="rentalGrowth">Rental Growth:</label>
+          <input type="number" id="rentalGrowth" step="0.125" min="1" max="9" value="5">
+          <span>%</span>
+        </div>
+        <input type="range" id="rentalGrowthSlider" step="0.125" min="1" max="9" value="5">
+      </div>
+    </div>
+    
+    <div class="loan-type">
+      <label><input type="radio" name="loanType" value="IO" checked> Interest Only (IO)</label>
+      <label><input type="radio" name="loanType" value="PI"> Principal + Interest (P+I)</label>
+    </div>
+    
+    <div class="result">
+      <h2>Results</h2>
+      <p id="netYieldDisplay"></p>
+      <p id="lvrDisplay"></p>
+      <p id="lvr5Display"></p>
+      <canvas id="lvrCanvas" width="300" height="400"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // Helper function to calculate the height needed for wrapped text.
+    function computeWrappedTextHeight(ctx, text, maxWidth, lineHeight) {
+      let words = text.split(' ');
+      let line = '';
+      let lineCount = 0;
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          lineCount++;
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      lineCount++;
+      return lineCount * lineHeight;
+    }
+    
+    // Helper function to draw wrapped text.
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+      let words = text.split(' ');
+      let line = '';
+      let currentY = y;
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, currentY);
+      return currentY - y + lineHeight;
+    }
+    
+    // Calculation for Interest Only loans.
+    function calculateIO(interestRate, grossYield) {
+      let i = interestRate / 100;
+      let g = grossYield / 100;
+      let netYield = 0.5 * g;
+      let lvr = (i > 0) ? netYield / i : 0;
+      return { netYield: netYield * 100, lvr: lvr * 100, netYieldDecimal: netYield };
+    }
+    
+    // Calculation for Principal + Interest loans.
+    function calculatePI(interestRate, grossYield) {
+      let iAnnual = interestRate / 100;
+      let g = grossYield / 100;
+      let netYield = 0.5 * g;
+      let iMonthly = iAnnual / 12;
+      let n = 360;
+      let factor = (iMonthly * Math.pow(1 + iMonthly, n)) / (Math.pow(1 + iMonthly, n) - 1);
+      let annualPayment = factor * 12;
+      let lvr = (annualPayment > 0) ? netYield / annualPayment : 0;
+      return { netYield: netYield * 100, lvr: lvr * 100, netYieldDecimal: netYield, annualPayment: annualPayment };
+    }
+    
+    // Update results and redraw the canvas.
+    function updateResults() {
+      let interestRate = parseFloat(document.getElementById("interestRate").value);
+      let grossYield = parseFloat(document.getElementById("grossYield").value);
+      let rentalGrowth = parseFloat(document.getElementById("rentalGrowth").value);
+      let loanType = document.querySelector('input[name="loanType"]:checked').value;
+      
+      let result, lvr5;
+      if (loanType === "IO") {
+        result = calculateIO(interestRate, grossYield);
+        if (result.netYield < interestRate) {
+          let factor5 = Math.pow(1 + rentalGrowth / 100, 5);
+          let netYield5 = result.netYieldDecimal * factor5;
+          lvr5 = (interestRate > 0) ? (netYield5 / (interestRate / 100)) * 100 : 0;
+        }
+      } else {
+        result = calculatePI(interestRate, grossYield);
+        if (result.netYield < interestRate) {
+          let factor5 = Math.pow(1 + rentalGrowth / 100, 5);
+          let netYield5 = result.netYieldDecimal * factor5;
+          lvr5 = (result.annualPayment > 0) ? (netYield5 / result.annualPayment) * 100 : 0;
+        }
+      }
+      
+      document.getElementById("netYieldDisplay").innerText = "Net Yield: " + result.netYield.toFixed(2) + "%";
+      document.getElementById("lvrDisplay").innerText = "Current Cashflow Neutral LVR: " + result.lvr.toFixed(2) + "%";
+      if (lvr5 !== undefined) {
+        document.getElementById("lvr5Display").innerText = "Starting LVR to be Cashflow Neutral in 5Y: " + lvr5.toFixed(2) + "%";
+      } else {
+        document.getElementById("lvr5Display").innerText = "";
+      }
+      
+      drawCanvas(result.lvr, lvr5);
+    }
+    
+    // Sync the textbox and slider for interest rate.
+    document.getElementById("interestRate").addEventListener("input", function() {
+      document.getElementById("interestRateSlider").value = this.value;
+      updateResults();
+    });
+    document.getElementById("interestRateSlider").addEventListener("input", function() {
+      document.getElementById("interestRate").value = this.value;
+      updateResults();
+    });
+    
+    // Sync the textbox and slider for gross yield.
+    document.getElementById("grossYield").addEventListener("input", function() {
+      document.getElementById("grossYieldSlider").value = this.value;
+      updateResults();
+    });
+    document.getElementById("grossYieldSlider").addEventListener("input", function() {
+      document.getElementById("grossYield").value = this.value;
+      updateResults();
+    });
+    
+    // Sync the textbox and slider for rental growth.
+    document.getElementById("rentalGrowth").addEventListener("input", function() {
+      document.getElementById("rentalGrowthSlider").value = this.value;
+      updateResults();
+    });
+    document.getElementById("rentalGrowthSlider").addEventListener("input", function() {
+      document.getElementById("rentalGrowth").value = this.value;
+      updateResults();
+    });
+    
+    // Update when loan type is changed.
+    document.querySelectorAll('input[name="loanType"]').forEach(function(radio) {
+      radio.addEventListener("change", updateResults);
+    });
+    
+    // Draw the thermometer and the key.
+    function drawCanvas(lvrCurrent, lvr5) {
+      let canvas = document.getElementById("lvrCanvas");
+      let ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Setup for the thermometer.
+      let margin = 40;
+      let scaleHeight = canvas.height - 2 * margin;
+      let centerX = canvas.width / 2;
+      
+      // Draw vertical scale.
+      ctx.beginPath();
+      ctx.moveTo(centerX, margin);
+      ctx.lineTo(centerX, canvas.height - margin);
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // Draw tick marks and labels.
+      for (let i = 0; i <= 10; i++) {
+        let y = margin + (scaleHeight * i) / 10;
+        ctx.beginPath();
+        ctx.moveTo(centerX - 10, y);
+        ctx.lineTo(centerX + 10, y);
+        ctx.stroke();
+        let label = (100 - i * 10) + "%";
+        ctx.font = "12px Arial";
+        ctx.fillStyle = "#333";
+        ctx.textAlign = "right";
+        ctx.fillText(label, centerX - 15, y + 4);
+      }
+      
+      // Draw blue dot (current LVR).
+      let cappedLVR = Math.min(lvrCurrent, 100);
+      let dotY = margin + scaleHeight * (1 - cappedLVR / 100);
+      ctx.beginPath();
+      ctx.arc(centerX, dotY, 10, 0, 2 * Math.PI);
+      ctx.fillStyle = "#007BFF";
+      ctx.fill();
+      ctx.font = "14px Arial";
+      ctx.fillStyle = "#007BFF";
+      ctx.textAlign = "center";
+      ctx.fillText(lvrCurrent.toFixed(1) + "%", centerX, dotY - 15);
+      
+      // Draw red dot (5Y scenario) if applicable.
+      if (lvr5 !== undefined) {
+        let cappedLVR5 = Math.min(lvr5, 100);
+        let dotY5 = margin + scaleHeight * (1 - cappedLVR5 / 100);
+        ctx.beginPath();
+        ctx.arc(centerX, dotY5, 10, 0, 2 * Math.PI);
+        ctx.fillStyle = "red";
+        ctx.fill();
+        ctx.font = "14px Arial";
+        ctx.fillStyle = "red";
+        ctx.textAlign = "center";
+        ctx.fillText(lvr5.toFixed(1) + "%", centerX, dotY5 - 15);
+      }
+      
+      // --- Draw the legend key on the right ---
+      const keyX = 210;  // Starting X for key area.
+      const keyPaddingLeft = 20; // Increased left padding so text doesn't overlap the dot.
+      const maxKeyWidth = canvas.width - keyX - keyPaddingLeft - 10;
+      const dotRadius = 6;
+      const lineHeight = 16;
+      const keyEntrySpacing = 10;
+      
+      // Define key entries.
+      let keyEntries = [];
+      keyEntries.push({ color: "#007BFF", text: "Current Cashflow Neutral LVR" });
+      if (lvr5 !== undefined) {
+        keyEntries.push({ color: "red", text: "Starting LVR to be Cashflow Neutral in 5Y" });
+      }
+      
+      // Compute each key entry's block height.
+      let keyBlockHeights = [];
+      keyEntries.forEach(entry => {
+        let textHeight = computeWrappedTextHeight(ctx, entry.text, maxKeyWidth, lineHeight);
+        let blockHeight = Math.max(dotRadius * 2, textHeight);
+        keyBlockHeights.push(blockHeight);
+      });
+      
+      // Total height for all key entries.
+      let totalKeyHeight = keyBlockHeights.reduce((a, b) => a + b, 0) + (keyEntries.length - 1) * keyEntrySpacing;
+      let keyStartY = (canvas.height - totalKeyHeight) / 2;
+      
+      ctx.font = "12px Arial";
+      ctx.fillStyle = "#333";
+      ctx.textBaseline = "top";
+      
+      // Draw each key entry.
+      let currentY = keyStartY;
+      keyEntries.forEach((entry, idx) => {
+        // Draw the dot.
+        ctx.beginPath();
+        ctx.arc(keyX, currentY + dotRadius, dotRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = entry.color;
+        ctx.fill();
+        // Draw the wrapped text next to the dot.
+        ctx.fillStyle = "#333";
+        drawWrappedText(ctx, entry.text, keyX + dotRadius + keyPaddingLeft, currentY, maxKeyWidth, lineHeight);
+        currentY += keyBlockHeights[idx] + keyEntrySpacing;
+      });
+    }
+    
+    // Initial update.
+    updateResults();
+  </script>
+</body>
+</html>
+
